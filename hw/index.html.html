@@ -50,7 +50,7 @@ body {
     font-weight: bold;
     cursor: pointer;
     transition: 0.3s;
-    z-index: 999; /* Butonun her zaman en üstte kalmasını sağlar */
+    z-index: 999;
 }
 
 #logoutBtn { right: 30px; background: #ff5e5e; display: none; }
@@ -196,8 +196,8 @@ function login() {
 function showGrid() {
     document.getElementById("content").style.display = "block";
     document.getElementById("weekView").style.display = "none";
-    document.getElementById("backBtn").style.display = "none"; // Liste sayfasında Back gizli
-    document.getElementById("logoutBtn").style.display = "block"; // Liste sayfasında Logout açık
+    document.getElementById("backBtn").style.display = "none";
+    document.getElementById("logoutBtn").style.display = "block";
     
     var html = "";
     for (var i = 1; i <= 32; i++) {
@@ -213,16 +213,16 @@ function showGrid() {
 
 function loadWeek(w) {
     document.getElementById("content").style.display = "none";
-    document.getElementById("logoutBtn").style.display = "none"; // İçerik sayfasında Logout gizli
+    document.getElementById("logoutBtn").style.display = "none";
     document.getElementById("weekView").style.display = "block";
-    document.getElementById("backBtn").style.display = "block"; // İçerik sayfasında Back görünüyor!
+    document.getElementById("backBtn").style.display = "block";
     
     document.getElementById("weekTitle").innerText = contents[currentLevel][w].title;
     document.getElementById("weekBody").innerHTML = contents[currentLevel][w].html;
 }
 
 function goBack() { 
-    showGrid(); // Tekrar ana listeye dön
+    showGrid();
 }
 
 function logout() { location.reload(); }
