@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Little Minds Academy</title>
+
+<style>
+body {
+    font-family: 'Comic Sans MS', cursive;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    background: linear-gradient(to bottom right, #b2f0e8, #fff5cc);
+}
+
+/* HEADER */
+.header {
+    background: white;
+    padding: 15px 0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    position: relative; 
+}
+
+.header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+}
+
+.header h1 {
+    font-size: 28px;
+    color: #ff914d;
+    margin: 0;
+}
+
+.side-logo {
+    width: 70px;
+    height: auto;
+}
+
+/* TOP BUTTONS */
+.top-btn {
+    position: absolute;
+    top: 20px;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    z-index: 999; /* Butonun her zaman en üstte kalmasını sağlar */
+}
+
+#logoutBtn { right: 30px; background: #ff5e5e; display: none; }
+#backBtn { left: 30px; background: #4cc9b0; display: none; }
+
+/* LOGIN BOX */
+.login-box {
+    width: 330px;
+    margin: 80px auto;
+    background: white;
+    padding: 30px;
+    border-radius: 25px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+input {
+    width: 90%;
+    padding: 12px;
+    margin: 8px;
+    border-radius: 12px;
+    border: 2px solid #6dd5c4;
+    font-size: 16px;
+}
+
+/* MAIN CONTENT */
+#content { display: none; padding: 30px; }
+
+.week-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    max-width: 900px;
+    margin: 25px auto;
+}
+
+.week-grid button {
+    padding: 20px;
+    border-radius: 20px;
+    font-size: 15px;
+    background: #4cc9b0;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.locked { background-color: #cccccc !important; cursor: not-allowed; }
+
+/* SINGLE WEEK VIEW */
+#weekView {
+    display: none;
+    background: white;
+    margin: 20px auto;
+    padding: 40px;
+    border-radius: 30px;
+    max-width: 500px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.logo-container {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 20px;
+}
+
+.logo-item { width: 110px; transition: 0.3s; cursor: pointer; }
+.logo-item:hover { transform: scale(1.1); }
+</style>
+</head>
+
+<body>
+
+<button id="backBtn" class="top-btn" onclick="goBack()">⬅ Back</button>
+<button id="logoutBtn" class="top-btn" onclick="logout()">🚪 Logout</button>
+
+<div class="header">
+    <div class="header-inner">
+        <img src="logo.png" class="side-logo">
+        <h1>Little Minds Academy</h1>
+        <img src="logo.png" class="side-logo">
+    </div>
+</div>
+
+<div class="login-box" id="loginBox">
+    <h2>Student Login</h2>
+    <input type="text" id="username" placeholder="Username" onkeypress="handleEnter(event)"><br>
+    <input type="password" id="password" placeholder="Password" onkeypress="handleEnter(event)"><br>
+    <div style="margin: 10px 0; color: #ff914d; font-weight: bold;">
+        <input type="checkbox" id="rememberMe"> Remember me! 🧠
+    </div>
+    <button style="padding: 10px 20px; background: #ff914d; color: white; border: none; border-radius: 10px; cursor: pointer;" onclick="login()">Login</button>
+    <p id="error" style="color:red;"></p>
+</div>
+
+<div id="content">
+    <div class="week-grid" id="gridArea"></div>
+</div>
+
+<div id="weekView">
+    <h2 id="weekTitle" style="color: #ff914d;"></h2>
+    <div id="weekBody"></div>
+</div>
+
+<script>
+var students = {
+    "ali": { password: "5001", level: "age5" },
+    "ayse": { password: "4001", level: "age4" }
+};
+
+var contents = {
+    age4: {
+        week1: { title: "Week 1 🌈", html: "<div class='logo-container'><a href='https://drive.google.com/file/d/1OTv3lPz8Ra8TsY_KH8-RErpSB_YCmbBD/view?usp=sharing' target='_blank'><img src='https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg' class='logo-item'></a><a href='https://youtu.be/-jBfb33_KHU' target='_blank'><img src='https://upload.wikimedia.org/wikipedia/commons/b/b8/YouTube_Logo_2017.svg' class='logo-item'></a></div>" }
+    },
+    age5: {
+        week1: { title: "Week 1 ⭐", html: "<div class='logo-container'><a href='https://drive.google.com/file/d/1OTv3lPz8Ra8TsY_KH8-RErpSB_YCmbBD/view?usp=sharing' target='_blank'><img src='https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg' class='logo-item'></a><a href='https://youtu.be/-jBfb33_KHU' target='_blank'><img src='https://upload.wikimedia.org/wikipedia/commons/b/b8/YouTube_Logo_2017.svg' class='logo-item'></a></div>" }
+    }
+};
+
+var currentLevel = "";
+
+window.onload = function() {
+    var saved = localStorage.getItem("littleMindsStudent");
+    if (saved) { document.getElementById("username").value = saved; document.getElementById("rememberMe").checked = true; }
+}
+
+function handleEnter(e) { if (e.key === "Enter") login(); }
+
+function login() {
+    var user = document.getElementById("username").value.toLowerCase();
+    var pass = document.getElementById("password").value;
+    var rem = document.getElementById("rememberMe").checked;
+
+    if (students[user] && students[user].password === pass) {
+        if (rem) localStorage.setItem("littleMindsStudent", user);
+        else localStorage.removeItem("littleMindsStudent");
+        document.getElementById("loginBox").style.display = "none";
+        currentLevel = students[user].level;
+        showGrid();
+    } else { document.getElementById("error").innerText = "Wrong username or password!"; }
+}
+
+function showGrid() {
+    document.getElementById("content").style.display = "block";
+    document.getElementById("weekView").style.display = "none";
+    document.getElementById("backBtn").style.display = "none"; // Liste sayfasında Back gizli
+    document.getElementById("logoutBtn").style.display = "block"; // Liste sayfasında Logout açık
+    
+    var html = "";
+    for (var i = 1; i <= 32; i++) {
+        var k = "week" + i;
+        if (contents[currentLevel] && contents[currentLevel][k]) {
+            html += "<button onclick=\"loadWeek('" + k + "')\">Week " + i + " 🔓</button>";
+        } else {
+            html += "<button class='locked'>Week " + i + " 🔒</button>";
+        }
+    }
+    document.getElementById("gridArea").innerHTML = html;
+}
+
+function loadWeek(w) {
+    document.getElementById("content").style.display = "none";
+    document.getElementById("logoutBtn").style.display = "none"; // İçerik sayfasında Logout gizli
+    document.getElementById("weekView").style.display = "block";
+    document.getElementById("backBtn").style.display = "block"; // İçerik sayfasında Back görünüyor!
+    
+    document.getElementById("weekTitle").innerText = contents[currentLevel][w].title;
+    document.getElementById("weekBody").innerHTML = contents[currentLevel][w].html;
+}
+
+function goBack() { 
+    showGrid(); // Tekrar ana listeye dön
+}
+
+function logout() { location.reload(); }
+</script>
+
+</body>
+</html>
